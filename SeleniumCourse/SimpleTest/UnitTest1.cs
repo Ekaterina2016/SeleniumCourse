@@ -8,7 +8,7 @@ namespace SimpleTest
     public class UnitTest1
     {
         private IWebDriver chrome;
-        private string serverName = "http://localhost:8080/litecart/en/";
+        private string serverName = "http://localhost:8080/litecart/admin/login.php";
 
         [TestMethod]
         public void TestMethod1()
@@ -22,8 +22,15 @@ namespace SimpleTest
         {
             chrome = new ChromeDriver();
             chrome.Navigate().GoToUrl(serverName);
-            var email = chrome.FindElement(By.Name("email"));
-            email.SendKeys("admin");
+            Login();
+        }
+
+
+
+        private void Login()
+        {
+            var username = chrome.FindElement(By.Name("username"));
+            username.SendKeys("admin");
             var password = chrome.FindElement(By.Name("password"));
             password.SendKeys("admin");
             var loginButton = chrome.FindElement(By.Name("login"));

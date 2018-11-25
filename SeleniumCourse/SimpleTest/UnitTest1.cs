@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OpenQA.Selenium;
@@ -65,6 +66,89 @@ namespace SimpleTest
             }
         }
 
+        [TestMethod]
+        public void Task9()
+        {
+            chrome = new ChromeDriver();
+            chrome.Navigate().GoToUrl(serverName);
+            Login();
+            chrome.FindElement(
+                By.CssSelector("[href*='http://localhost:8080/litecart/admin/?app=countries&doc=countries']")).Click();
+            var countries = chrome.FindElements(By.CssSelector("tr.row a:not([title=Edit])"));
+            for (var i = 0; i < countries.Count - 1; i++)
+            {
+                Assert.IsTrue(string.CompareOrdinal(countries[i].Text, countries[i + 1].Text) <= 0,
+                    "Страны не в алфавитном порядке");
+            }
+
+
+            var zonesInCountries = chrome
+                .FindElements(By.XPath("//tr[contains(@class,'row')]//td[6][not(contains(.,0))]/../*/a[@title='Edit']"))
+                .Select(e => e.GetAttribute("href")).ToList();
+            foreach (var e in zonesInCountries)
+            {
+                chrome.Navigate().GoToUrl(e);
+                var zones = chrome.FindElements(
+                    By.XPath("//*[@id='table-zones']//input[contains(@name,'name') and not(@value='')]/.."));
+                for (var i = 0; i < zones.Count - 1; i++)
+                {
+                    Assert.IsTrue(string.CompareOrdinal(zones[i].Text, zones[i + 1].Text) <= 0,
+                        "Зоны не в алфавитном порядке");
+                }
+            }
+        }
+
+        [TestMethod]
+        public void Task10()
+        {
+            chrome = new ChromeDriver();
+            chrome.Navigate().GoToUrl(shopAddress);
+
+            var duckOntheMainPage = chrome.FindElement(By.CssSelector(
+                "[href*='http://localhost:8080/litecart/en/rubber-ducks-c-1/subcategory-c-2/yellow-duck-p-1']"));
+
+            var productNameMainPage = duckOntheMainPage.FindElement(By.ClassName("name")).Text;
+            var productRegularPriceMainPage = duckOntheMainPage.FindElement(By.ClassName("regular-price")).Text;
+            var productDiscountPriceMainPage = duckOntheMainPage.FindElement(By.ClassName("campaign-price")).Text;
+            var regularPriceColorMainPage = duckOntheMainPage.FindElement(By.ClassName("regular-price"))
+                .GetCssValue("color").Replace("rgba(", "").Replace(")", "").Replace(" ", "").Split(',');
+            var regularPriceSizeMainPage = duckOntheMainPage.FindElement(By.ClassName("regular-price")).Size.Height;
+            var discountPriceColorMainPage = duckOntheMainPage.FindElement(By.ClassName("campaign-price"))
+                .GetCssValue("color").Replace("rgba(", "").Replace(")", "").Replace(" ", "").Split(',');
+            var discountPriceSizeMainPage = duckOntheMainPage.FindElement(By.ClassName("campaign-price")).Size.Height;
+
+            duckOntheMainPage.Click();
+
+            var duckOnProductPage = chrome.FindElement(By.Id("box-product"));
+
+            var productNameProductPage = duckOnProductPage.FindElement(By.ClassName("title")).Text;
+            var productRegularPriceProductPage = duckOnProductPage.FindElement(By.ClassName("regular-price")).Text;
+            var productDiscountPriceProductPage = duckOnProductPage.FindElement(By.ClassName("campaign-price")).Text;
+            var regularPriceColorProductPage =
+                duckOnProductPage.FindElement(By.ClassName("regular-price")).GetCssValue("color").Replace("rgba(", "")
+                    .Replace(")", "").Replace(" ", "").Split(',');
+            var regularPriceSizeProductPage = duckOnProductPage.FindElement(By.ClassName("regular-price")).Size.Height;
+            var discountPriceColorProductPage =
+                duckOnProductPage.FindElement(By.ClassName("campaign-price")).GetCssValue("color").Replace("rgba(", "")
+                    .Replace(")", "").Replace(" ", "").Split(',');
+            var discountPriceSizeProductPage =
+                duckOnProductPage.FindElement(By.ClassName("campaign-price")).Size.Height;
+
+            Assert.AreEqual(productNameMainPage, productNameProductPage);
+            Assert.AreEqual(productRegularPriceMainPage, productRegularPriceProductPage);
+            Assert.AreEqual(productDiscountPriceMainPage, productDiscountPriceProductPage);
+            Assert.IsTrue(discountPriceColorProductPage[1] == "0" && discountPriceColorProductPage[2] == "0" &&
+                          discountPriceColorProductPage[0] != "0");
+            Assert.IsTrue(discountPriceColorProductPage[1] == "0" && discountPriceColorMainPage[2] == "0" &&
+                          discountPriceColorMainPage[0] != "0");
+            Assert.IsTrue(regularPriceColorProductPage[0].Equals(regularPriceColorProductPage[1]) &&
+                          regularPriceColorProductPage[1].Equals(regularPriceColorProductPage[2]));
+            Assert.IsTrue(regularPriceColorMainPage[0].Equals(regularPriceColorMainPage[1]) &&
+                          regularPriceColorMainPage[1].Equals(regularPriceColorMainPage[2]));
+
+            Assert.IsTrue(discountPriceSizeProductPage - regularPriceSizeProductPage > 0);
+            Assert.IsTrue(discountPriceSizeMainPage - regularPriceSizeMainPage > 0);
+        }
 
         private void Login()
         {

@@ -5,6 +5,7 @@ using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Support.UI;
 
 namespace SimpleTest
 {
@@ -148,6 +149,38 @@ namespace SimpleTest
 
             Assert.IsTrue(discountPriceSizeProductPage - regularPriceSizeProductPage > 0);
             Assert.IsTrue(discountPriceSizeMainPage - regularPriceSizeMainPage > 0);
+        }
+
+        [TestMethod]
+        public void Task11()
+        {
+            chrome = new ChromeDriver();
+            chrome.Navigate().GoToUrl(shopAddress);
+
+            chrome.FindElement(By.CssSelector("[href*='http://localhost:8080/litecart/en/create_account']")).Click();
+
+            var email = $"{Guid.NewGuid()}@qwerty.com";
+            chrome.FindElement(By.Name("firstname")).SendKeys("firstname");
+            chrome.FindElement(By.Name("lastname")).SendKeys("lastname");
+            chrome.FindElement(By.Name("address1")).SendKeys("address");
+            chrome.FindElement(By.Name("postcode")).SendKeys("12345");
+            chrome.FindElement(By.Name("city")).SendKeys("city");
+            new SelectElement(chrome.FindElement(By.Name("country_code"))).SelectByText("United States");
+            chrome.FindElement(By.Name("phone")).SendKeys("+19999999999");
+            chrome.FindElement(By.Name("email")).SendKeys(email);
+            chrome.FindElement(By.Name("password")).SendKeys("12345");
+            chrome.FindElement(By.Name("confirmed_password")).SendKeys("12345");
+            chrome.FindElement(By.Name("create_account")).Click();
+
+            Thread.Sleep(1000);
+            var logout = chrome.FindElement(By.CssSelector("[href*='http://localhost:8080/litecart/en/logout']"));
+            logout.Click();
+
+            chrome.FindElement(By.Name("email")).SendKeys(email);
+            chrome.FindElement(By.Name("password")).SendKeys("12345");
+            chrome.FindElement(By.Name("login")).Click();
+
+            logout.Click();
         }
 
         private void Login()

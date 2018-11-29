@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -203,6 +202,52 @@ namespace SimpleTest
         public void Task12()
         {
             chrome = new ChromeDriver();
+            chrome.Navigate().GoToUrl(serverName);
+            Login();
+
+            chrome.FindElement(
+                By.CssSelector("[href*='http://localhost:8080/litecart/admin/?app=catalog&doc=catalog']")).Click();
+            chrome.FindElement(By.CssSelector(
+                "[href*='http://localhost:8080/litecart/admin/?category_id=0&app=catalog&doc=edit_product']")).Click();
+            Thread.Sleep(1000);
+
+            chrome.FindElement(By.Name("name[en]")).SendKeys("product");
+            chrome.FindElement(By.Name("code")).SendKeys("code");
+            var productGroups = chrome.FindElements(By.Name("product_groups[]"));
+            productGroups[1].Click();
+            chrome.FindElement(By.Name("quantity")).SendKeys("150");
+            chrome.FindElement(By.Name("date_valid_from")).SendKeys(DateTime.Today.ToString("dd.MM.yyyy"));
+            chrome.FindElement(By.Name("date_valid_to")).SendKeys(DateTime.Today.AddDays(10).ToString("dd.MM.yyyy"));
+
+            chrome.FindElement(By.CssSelector("[href*='#tab-information']")).Click();
+            Thread.Sleep(1000);
+            new SelectElement(chrome.FindElement(By.Name("manufacturer_id"))).SelectByIndex(1);
+            chrome.FindElement(By.Name("keywords")).SendKeys("keywords");
+            chrome.FindElement(By.Name("short_description[en]")).SendKeys("short description");
+            chrome.FindElement(By.ClassName("trumbowyg-editor")).SendKeys("description");
+            chrome.FindElement(By.Name("head_title[en]")).SendKeys("head title");
+            chrome.FindElement(By.Name("meta_description[en]")).SendKeys("meta_description");
+
+            chrome.FindElement(By.CssSelector("[href*='#tab-prices']")).Click();
+            Thread.Sleep(1000);
+
+            chrome.FindElement(By.Name("purchase_price")).Clear();
+            chrome.FindElement(By.Name("purchase_price")).SendKeys("10");
+            new SelectElement(chrome.FindElement(By.Name("purchase_price_currency_code"))).SelectByValue("USD");
+            chrome.FindElement(By.Name("prices[USD]")).Clear();
+            chrome.FindElement(By.Name("prices[USD]")).SendKeys("10");
+            chrome.FindElement(By.Name("gross_prices[USD]")).Clear();
+            chrome.FindElement(By.Name("gross_prices[USD]")).SendKeys("10");
+            chrome.FindElement(By.Name("prices[EUR]")).Clear();
+            chrome.FindElement(By.Name("prices[EUR]")).SendKeys("10");
+            chrome.FindElement(By.Name("gross_prices[EUR]")).Clear();
+            chrome.FindElement(By.Name("gross_prices[EUR]")).SendKeys("10");
+
+            chrome.FindElement(By.Name("save")).Click();
+
+            chrome.FindElement(
+                By.CssSelector("[href*='http://localhost:8080/litecart/admin/?app=catalog&doc=catalog']")).Click();
+            Assert.IsTrue(chrome.FindElement(By.XPath($"//*[@id='content']//a[.='product']")).Displayed);
         }
 
         private void Login()

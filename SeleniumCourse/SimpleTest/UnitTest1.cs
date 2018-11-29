@@ -97,6 +97,22 @@ namespace SimpleTest
                         "Зоны не в алфавитном порядке");
                 }
             }
+
+            chrome.FindElement(
+                By.CssSelector("[href*='http://localhost:8080/litecart/admin/?app=geo_zones&doc=geo_zones']")).Click();
+            var countriesUrls = chrome.FindElements(By.XPath("//table//a[@title='Edit']"))
+                .Select(e => e.GetAttribute("href")).ToList();
+            foreach (var url in countriesUrls)
+            {
+                chrome.Navigate().GoToUrl(url);
+                var zones = chrome.FindElements(
+                    By.XPath("//*[@id='table-zones']//select[contains(@name,'zone_code')]/option[@selected]"));
+                for (var i = 0; i < zones.Count - 1; i++)
+                {
+                    Assert.IsTrue(string.CompareOrdinal(zones[i].Text, zones[i + 1].Text) <= 0,
+                        "Зоны не в алфавитном порядке");
+                }
+            }
         }
 
         [TestMethod]
@@ -181,6 +197,12 @@ namespace SimpleTest
             chrome.FindElement(By.Name("login")).Click();
 
             logout.Click();
+        }
+
+        [TestMethod]
+        public void Task12()
+        {
+            chrome = new ChromeDriver();
         }
 
         private void Login()

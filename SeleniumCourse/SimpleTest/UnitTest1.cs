@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
+using System.Security.Policy;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OpenQA.Selenium;
@@ -249,6 +252,30 @@ namespace SimpleTest
                 By.CssSelector("[href*='http://localhost:8080/litecart/admin/?app=catalog&doc=catalog']")).Click();
             Assert.IsTrue(chrome.FindElement(By.XPath($"//*[@id='content']//a[.='product']")).Displayed);
         }
+
+        [TestMethod]
+        public void Task17()
+        {
+            chrome = new ChromeDriver();
+            chrome.Navigate().GoToUrl(serverName);
+            Login();
+
+            chrome.Navigate().GoToUrl("http://localhost:8080/litecart/admin/?app=catalog&doc=catalog&category_id=1");
+
+            var itemsCount = chrome
+                .FindElements(By.XPath("//td/a[contains(@href,'category_id=1')][not(contains(@title,'Edit'))]")).Count;
+            for (var j = 0; j < itemsCount; j++)
+            {
+                chrome.FindElements(By.XPath("//td/a[contains(@href,'category_id=1')][not(contains(@title,'Edit'))]"))
+                    [j].Click();
+
+                Assert.IsFalse(chrome.Manage().Logs.GetLog("browser").Any());
+
+                chrome.Navigate()
+                    .GoToUrl("http://localhost:8080/litecart/admin/?app=catalog&doc=catalog&category_id=1");
+            }
+        }
+
 
         private void Login()
         {

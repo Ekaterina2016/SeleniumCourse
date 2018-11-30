@@ -254,6 +254,50 @@ namespace SimpleTest
         }
 
         [TestMethod]
+        public void Task13()
+        {
+            chrome = new ChromeDriver();
+            wait = new WebDriverWait(chrome, TimeSpan.FromSeconds(15));
+            for (var i = 0; i < 3; i++)
+            {
+                chrome.Navigate().GoToUrl(shopAddress);
+
+                chrome.FindElement(By.XPath("(//*[@id='box-latest-products']//li[contains(@class,'product')])[1]"))
+                    .Click();
+                var quantityOld = chrome.FindElement(By.XPath("//*[@id='cart']//*[@class='quantity']")).Text;
+                new SelectElement(chrome.FindElement(By.Name("options[Size]"))).SelectByIndex(1);
+
+                chrome.FindElement(By.Name("add_cart_product")).Click();
+                wait.Until(chrome => !chrome.FindElement(By.XPath("//*[@id='cart']//*[@class='quantity']")).Text
+                    .Equals(quantityOld));
+            }
+
+            chrome.FindElement(By.XPath("//*[@id='cart']//a[@class='link']")).Click();
+            for (var i = 3; i > 1; i--)
+            {
+                var productCount = chrome.FindElement(By.XPath($"//*[@id='order_confirmation-wrapper']//tr[2]/td[1]"));
+
+                chrome.FindElement(By.Name("quantity")).Clear();
+                chrome.FindElement(By.Name("quantity")).SendKeys($"{i - 1}");
+                chrome.FindElement(By.Name("update_cart_item")).Click();
+                wait.Until(chrome => ExpectedConditions.StalenessOf(productCount));
+            }
+
+            wait.Until(ExpectedConditions.TextToBePresentInElementLocated(
+                By.XPath($"//*[@id='order_confirmation-wrapper']//tr[2]/td[1]"), "1"));
+            var updateButtonElement =
+                chrome.FindElement(By.Name("update_cart_item"));
+            chrome.FindElement(By.Name("quantity")).Clear();
+            chrome.FindElement(By.Name("quantity")).SendKeys("0");
+            chrome.FindElement(By.Name("update_cart_item")).Click();
+            wait.Until(chrome => ExpectedConditions.StalenessOf(updateButtonElement));
+            wait.Until(chrome =>
+                ExpectedConditions.VisibilityOfAllElementsLocatedBy(
+                    By.XPath("//*[@id='checkout-cart-wrapper']//*[.='There are no items in your cart.']")));
+        }
+
+
+        [TestMethod]
         public void Task17()
         {
             chrome = new ChromeDriver();
@@ -297,5 +341,6 @@ namespace SimpleTest
         private readonly string serverName = "http://localhost:8080/litecart/admin/login.php";
         private readonly string shopAddress = "http://localhost:8080/litecart/en/";
         private IWebDriver chrome;
+        protected WebDriverWait wait;
     }
 }
